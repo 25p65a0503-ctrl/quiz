@@ -4,14 +4,19 @@ $pdo = new PDO('sqlite:' . $dbFile, null, null, [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 ]);
+$pdo->exec('PRAGMA foreign_keys = ON');
 
-$topicTableExists = $pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='topics'")->fetchColumn();
-if ((int) $topicTableExists === 0) {
+$topics = ['Python', 'JavaScript', 'PHP', 'Java', 'C#', 'SQL', 'C++', 'Rust'];
+$topicTableExists = (int) $pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='topics'")->fetchColumn() > 0;
+if (!$topicTableExists) {
     $pdo->exec("CREATE TABLE topics (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE
     );");
+}
 
+$questionTableExists = (int) $pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='questions'")->fetchColumn() > 0;
+if (!$questionTableExists) {
     $pdo->exec("CREATE TABLE questions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         topic_id INTEGER NOT NULL,
@@ -25,13 +30,18 @@ if ((int) $topicTableExists === 0) {
     );");
 }
 
-$topicCount = (int) $pdo->query('SELECT COUNT(*) FROM topics')->fetchColumn();
-if ($topicCount < 8) {
+$existingTopics = $pdo->query('SELECT id, name FROM topics ORDER BY id')->fetchAll();
+$existingTopicNames = array_column($existingTopics, 'name');
+$existingTopicIds = array_map('intval', array_column($existingTopics, 'id'));
+$topicCount = count($existingTopics);
+if ($topicCount < 8 || ($existingTopicNames === $topics && $existingTopicIds !== range(1, 8))) {
     $pdo->exec('DELETE FROM questions');
     $pdo->exec('DELETE FROM topics');
 
-    $topics = ['Python', 'JavaScript', 'PHP', 'Java', 'C#', 'SQL', 'C++', 'Rust'];
-    $pdo->exec('INSERT INTO topics (name) VALUES ("' . implode('"), ("', $topics) . '")');
+    $topicInsert = $pdo->prepare('INSERT INTO topics (id, name) VALUES (?, ?)');
+    foreach ($topics as $index => $name) {
+        $topicInsert->execute([$index + 1, $name]);
+    }
 
     $questions = [
         [1, 'Which keyword defines a function?', 'def', 'func', 'function', 'define', 1],
