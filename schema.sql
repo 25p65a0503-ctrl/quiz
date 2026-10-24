@@ -1,9 +1,10 @@
--- Select your (empty) database first, then import this file.
-CREATE TABLE topics (id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(50) NOT NULL UNIQUE);
+-- Import this file into an empty SQLite database.
+PRAGMA foreign_keys = ON;
+CREATE TABLE topics (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(50) NOT NULL UNIQUE);
 CREATE TABLE questions (
-  id INT PRIMARY KEY AUTO_INCREMENT, topic_id INT NOT NULL, question VARCHAR(255) NOT NULL,
+  id INTEGER PRIMARY KEY AUTOINCREMENT, topic_id INTEGER NOT NULL, question VARCHAR(255) NOT NULL,
   opt1 VARCHAR(120) NOT NULL, opt2 VARCHAR(120) NOT NULL, opt3 VARCHAR(120) NOT NULL, opt4 VARCHAR(120) NOT NULL,
-  correct TINYINT NOT NULL, FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE);
+  correct INTEGER NOT NULL, FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE);
 INSERT INTO topics (id,name) VALUES (1,'Python'),(2,'JavaScript'),(3,'Java'),(4,'C'),(5,'C++'),(6,'C#'),(7,'PHP'),(8,'Go'),(9,'Rust'),(10,'Ruby'),(11,'Swift'),(12,'Kotlin'),(13,'TypeScript'),(14,'SQL'),(15,'R');
 INSERT INTO questions (topic_id,question,opt1,opt2,opt3,opt4,correct) VALUES
 (1,'Which keyword defines a function?','def','func','function','define',1),
